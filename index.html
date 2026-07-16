@@ -246,27 +246,44 @@
   </div>
 
   <!-- ═══════════════════════════════════════════════════════════
-       FIREBASE CONFIG
-       1. Go to console.firebase.google.com
-       2. Create a project → Add Web App → copy the config below
-       3. Replace every "YOUR_..." value
+       SUPABASE CONFIG
+       1. Go to app.supabase.com → your project → Settings → API
+       2. Copy "Project URL"  → SUPABASE_URL
+       3. Copy "anon public"  → SUPABASE_ANON_KEY
        ════════════════════════════════════════════════════════ -->
   <script type="module">
-    import { initializeApp }    from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
-    import { getFirestore, collection, addDoc, serverTimestamp }
-                                from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+    import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
-    const firebaseConfig = {
-      apiKey:            'YOUR_API_KEY',
-      authDomain:        'YOUR_PROJECT_ID.firebaseapp.com',
-      projectId:         'YOUR_PROJECT_ID',
-      storageBucket:     'YOUR_PROJECT_ID.appspot.com',
-      messagingSenderId: 'YOUR_SENDER_ID',
-      appId:             'YOUR_APP_ID',
-    };
+    const SUPABASE_URL      = 'https://mqhxypryovxvnsqrelak.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im1xaHh5cHJ5b3Z4dm5zcXJlbGFrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODQxNzY4MTcsImV4cCI6MjA5OTc1MjgxN30.b83igijFZ5Rwet2mC04Y4-Veo-VID1TbMuLV8Wy0wA0';
 
-    const app = initializeApp(firebaseConfig);
-    const db  = getFirestore(app);
+    const supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    // ── Collect sender metadata for hints ───────────────────────
+    function getHints() {
+      const ua = navigator.userAgent;
+      const device =
+        /iPhone|iPad|iPod/i.test(ua) ? 'iPhone' :
+        /Android/i.test(ua)          ? 'Android' :
+        /Mac/i.test(ua)              ? 'Mac' : 'Desktop';
+
+      const ref = document.referrer;
+      const referrer =
+        ref.includes('instagram') ? 'Instagram' :
+        ref.includes('snapchat')  ? 'Snapchat'  :
+        ref.includes('tiktok')    ? 'TikTok'    :
+        ref.includes('twitter') || ref.includes('x.com') ? 'Twitter/X' :
+        ref ? 'Link' : 'Direct';
+
+      const tz = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      const now = new Date();
+      const timeLabel = now.toLocaleString('en-US', {
+        weekday: 'long', hour: 'numeric', minute: '2-digit',
+      });
+
+      return { device, referrer, timezone: tz, time: timeLabel,
+               language: navigator.language || 'Unknown' };
+    }
 
     // ── Read handle from URL ────────────────────────────────────
     const params = new URLSearchParams(window.location.search);
@@ -305,13 +322,14 @@
       document.getElementById('errorBanner').style.display = 'none';
 
       try {
-        await addDoc(collection(db, 'messages'), {
-          handle:    handle,
-          content:   content,
-          type:      selectedType,
-          timestamp: serverTimestamp(),
-          status:    'unread',
+        const { error } = await supabase.from('messages').insert({
+          handle:  handle,
+          content: content,
+          type:    selectedType,
+          status:  'unread',
+          hints:   getHints(),
         });
+        if (error) throw error;
 
         // Show success
         document.querySelectorAll(
