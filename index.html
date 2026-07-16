@@ -1,0 +1,414 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Send an anonymous message on FR-FR" />
+  <title>FR-FR · Send Anonymously</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:       #0A0A0F;
+      --surface:  #141420;
+      --surface2: #1E1E2E;
+      --accent:   #7C3AED;
+      --accent2:  #EC4899;
+      --text:     #F8F8FF;
+      --muted:    #8888AA;
+      --radius:   16px;
+    }
+
+    body {
+      font-family: 'Poppins', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100dvh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 24px 16px 48px;
+    }
+
+    /* ── Logo ─────────────────────────────────────────────────── */
+    .logo {
+      font-size: 28px;
+      font-weight: 900;
+      letter-spacing: -1px;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 32px;
+    }
+
+    /* ── Card ─────────────────────────────────────────────────── */
+    .card {
+      width: 100%;
+      max-width: 480px;
+      background: var(--surface);
+      border-radius: 24px;
+      border: 1px solid rgba(124, 58, 237, 0.15);
+      padding: 28px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    /* ── Header ───────────────────────────────────────────────── */
+    .header {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .handle {
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--text);
+    }
+    .handle span { color: var(--muted); font-weight: 600; }
+    .subtitle {
+      font-size: 13px;
+      color: var(--muted);
+      font-weight: 500;
+    }
+
+    /* ── Type chips ───────────────────────────────────────────── */
+    .type-row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .type-chip {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      padding: 6px 12px;
+      border-radius: 50px;
+      border: 1.5px solid transparent;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      background: var(--surface2);
+      color: var(--muted);
+      font-family: 'Poppins', sans-serif;
+    }
+    .type-chip:hover { filter: brightness(1.2); }
+    .type-chip.active {
+      background: var(--chip-bg);
+      border-color: var(--chip-color);
+      color: var(--chip-color);
+    }
+
+    /* ── Textarea ─────────────────────────────────────────────── */
+    .textarea-wrap {
+      position: relative;
+    }
+    textarea {
+      width: 100%;
+      min-height: 130px;
+      background: var(--surface2);
+      border: 1.5px solid rgba(255,255,255,0.06);
+      border-radius: var(--radius);
+      padding: 16px;
+      color: var(--text);
+      font-family: 'Poppins', sans-serif;
+      font-size: 15px;
+      font-weight: 500;
+      line-height: 1.6;
+      resize: none;
+      transition: border-color 0.2s;
+      outline: none;
+    }
+    textarea:focus { border-color: rgba(124, 58, 237, 0.5); }
+    textarea::placeholder { color: var(--muted); }
+    .char-count {
+      position: absolute;
+      bottom: 10px;
+      right: 14px;
+      font-size: 11px;
+      color: var(--muted);
+      font-weight: 600;
+      pointer-events: none;
+    }
+    .char-count.warn { color: var(--accent2); }
+
+    /* ── Send button ──────────────────────────────────────────── */
+    .send-btn {
+      width: 100%;
+      padding: 16px;
+      border: none;
+      border-radius: var(--radius);
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      color: #fff;
+      font-family: 'Poppins', sans-serif;
+      font-size: 15px;
+      font-weight: 800;
+      cursor: pointer;
+      transition: opacity 0.2s, transform 0.1s;
+      letter-spacing: 0.2px;
+    }
+    .send-btn:hover { opacity: 0.9; }
+    .send-btn:active { transform: scale(0.98); }
+    .send-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+
+    .anon-note {
+      text-align: center;
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 500;
+    }
+
+    /* ── Success state ────────────────────────────────────────── */
+    .success {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+      text-align: center;
+      padding: 12px 0;
+    }
+    .success-icon {
+      width: 64px;
+      height: 64px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, var(--accent), var(--accent2));
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+    }
+    .success h2 { font-size: 20px; font-weight: 800; }
+    .success p  { font-size: 13px; color: var(--muted); font-weight: 500; line-height: 1.6; }
+
+    .send-another {
+      background: var(--surface2);
+      border: none;
+      border-radius: var(--radius);
+      color: var(--text);
+      font-family: 'Poppins', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      padding: 12px 24px;
+      cursor: pointer;
+      transition: opacity 0.2s;
+    }
+    .send-another:hover { opacity: 0.8; }
+
+    /* ── Error banner ─────────────────────────────────────────── */
+    .error-banner {
+      display: none;
+      background: rgba(239, 68, 68, 0.12);
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-size: 13px;
+      color: #FCA5A5;
+      font-weight: 500;
+    }
+
+    /* ── Footer ───────────────────────────────────────────────── */
+    .footer {
+      margin-top: 28px;
+      font-size: 12px;
+      color: var(--muted);
+      text-align: center;
+      font-weight: 500;
+    }
+    .footer a {
+      color: var(--accent);
+      text-decoration: none;
+      font-weight: 700;
+    }
+
+    @media (max-width: 360px) {
+      .card { padding: 22px 18px; }
+      .handle { font-size: 19px; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="logo">FR-FR</div>
+
+  <div class="card" id="mainCard">
+
+    <!-- Header -->
+    <div class="header">
+      <div class="handle"><span>ask</span> <span id="handleDisplay">@...</span> <span>anything</span></div>
+      <div class="subtitle">Your message is 100% anonymous · they'll never know it was you</div>
+    </div>
+
+    <!-- Type selector -->
+    <div class="type-row" id="typeRow">
+      <button class="type-chip active" data-type="question"
+        style="--chip-color:#A78BFA; --chip-bg:rgba(124,58,237,0.12)">
+        ❓ Question
+      </button>
+      <button class="type-chip" data-type="confession"
+        style="--chip-color:#F472B6; --chip-bg:rgba(236,72,153,0.12)">
+        🤫 Confession
+      </button>
+      <button class="type-chip" data-type="compliment"
+        style="--chip-color:#34D399; --chip-bg:rgba(16,185,129,0.12)">
+        💫 Compliment
+      </button>
+      <button class="type-chip" data-type="hot_take"
+        style="--chip-color:#FBBF24; --chip-bg:rgba(245,158,11,0.12)">
+        🔥 Hot Take
+      </button>
+      <button class="type-chip" data-type="crush"
+        style="--chip-color:#F87171; --chip-bg:rgba(239,68,68,0.12)">
+        💜 Crush
+      </button>
+      <button class="type-chip" data-type="roast"
+        style="--chip-color:#2DD4BF; --chip-bg:rgba(20,184,166,0.12)">
+        😤 Roast
+      </button>
+    </div>
+
+    <!-- Message input -->
+    <div class="textarea-wrap">
+      <textarea id="messageInput" maxlength="150"
+        placeholder="Type your anonymous message..."></textarea>
+      <div class="char-count" id="charCount">0 / 150</div>
+    </div>
+
+    <!-- Error -->
+    <div class="error-banner" id="errorBanner"></div>
+
+    <!-- Send -->
+    <button class="send-btn" id="sendBtn" disabled>Send Anonymously 🔒</button>
+
+    <div class="anon-note">🔒 FR-FR never reveals who sent a message</div>
+
+    <!-- Success state (hidden initially) -->
+    <div class="success" id="successState">
+      <div class="success-icon">✓</div>
+      <h2>Sent! 🎉</h2>
+      <p>Your anonymous message was delivered.<br/>They'll never know it was you.</p>
+      <button class="send-another" id="sendAnotherBtn">Send another</button>
+    </div>
+
+  </div>
+
+  <div class="footer">
+    Powered by <a href="https://vizura.app" target="_blank">FR-FR</a> ·
+    <a href="https://vizura.app/frfr/privacy" target="_blank">Privacy</a>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════
+       FIREBASE CONFIG
+       1. Go to console.firebase.google.com
+       2. Create a project → Add Web App → copy the config below
+       3. Replace every "YOUR_..." value
+       ════════════════════════════════════════════════════════ -->
+  <script type="module">
+    import { initializeApp }    from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js';
+    import { getFirestore, collection, addDoc, serverTimestamp }
+                                from 'https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore.js';
+
+    const firebaseConfig = {
+      apiKey:            'YOUR_API_KEY',
+      authDomain:        'YOUR_PROJECT_ID.firebaseapp.com',
+      projectId:         'YOUR_PROJECT_ID',
+      storageBucket:     'YOUR_PROJECT_ID.appspot.com',
+      messagingSenderId: 'YOUR_SENDER_ID',
+      appId:             'YOUR_APP_ID',
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db  = getFirestore(app);
+
+    // ── Read handle from URL ────────────────────────────────────
+    const params = new URLSearchParams(window.location.search);
+    const handle = (params.get('u') || '').toLowerCase().trim();
+
+    if (handle) {
+      document.getElementById('handleDisplay').textContent = '@' + handle;
+      document.title = `Ask @${handle} anything · FR-FR`;
+    } else {
+      document.getElementById('handleDisplay').textContent = 'someone';
+    }
+
+    // ── Type selector ───────────────────────────────────────────
+    let selectedType = 'question';
+    document.getElementById('typeRow').addEventListener('click', (e) => {
+      const chip = e.target.closest('.type-chip');
+      if (!chip) return;
+      document.querySelectorAll('.type-chip').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+      selectedType = chip.dataset.type;
+    });
+
+    // ── Character counter ───────────────────────────────────────
+    const textarea  = document.getElementById('messageInput');
+    const charCount = document.getElementById('charCount');
+    const sendBtn   = document.getElementById('sendBtn');
+
+    textarea.addEventListener('input', () => {
+      const len  = textarea.value.length;
+      const left = 150 - len;
+      charCount.textContent = `${len} / 150`;
+      charCount.classList.toggle('warn', left <= 20);
+      sendBtn.disabled = len < 2;
+    });
+
+    // ── Send ────────────────────────────────────────────────────
+    sendBtn.addEventListener('click', async () => {
+      const content = textarea.value.trim();
+      if (!content || !handle) return;
+
+      sendBtn.disabled = true;
+      sendBtn.textContent = 'Sending...';
+      document.getElementById('errorBanner').style.display = 'none';
+
+      try {
+        await addDoc(collection(db, 'messages'), {
+          handle:    handle,
+          content:   content,
+          type:      selectedType,
+          timestamp: serverTimestamp(),
+          status:    'unread',
+        });
+
+        // Show success
+        document.querySelectorAll(
+          '.header, .type-row, .textarea-wrap, .error-banner, .send-btn, .anon-note'
+        ).forEach(el => el.style.display = 'none');
+        const success = document.getElementById('successState');
+        success.style.display = 'flex';
+
+      } catch (err) {
+        console.error(err);
+        const banner = document.getElementById('errorBanner');
+        banner.textContent = 'Something went wrong. Please try again.';
+        banner.style.display = 'block';
+        sendBtn.disabled = false;
+        sendBtn.textContent = 'Send Anonymously 🔒';
+      }
+    });
+
+    // ── Send another ────────────────────────────────────────────
+    document.getElementById('sendAnotherBtn').addEventListener('click', () => {
+      textarea.value = '';
+      charCount.textContent = '0 / 150';
+      sendBtn.disabled = true;
+      sendBtn.textContent = 'Send Anonymously 🔒';
+      document.querySelectorAll(
+        '.header, .type-row, .textarea-wrap, .send-btn, .anon-note'
+      ).forEach(el => el.style.display = '');
+      document.getElementById('successState').style.display = 'none';
+      document.querySelectorAll('.type-chip').forEach((c, i) => {
+        c.classList.toggle('active', i === 0);
+      });
+      selectedType = 'question';
+    });
+  </script>
+
+</body>
+</html>
