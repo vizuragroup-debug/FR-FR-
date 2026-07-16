@@ -336,11 +336,25 @@
     }
 
     // ── Type selector ───────────────────────────────────────────
-    let selectedType = 'question';
+    const typeParam = (params.get('type') || '').toLowerCase().trim();
+    let selectedType = typeParam || 'question';
+
+    // Auto-select chip matching URL type param
+    const allChips = document.querySelectorAll('.type-chip');
+    allChips.forEach(c => {
+      const match = c.dataset.type === selectedType;
+      c.classList.toggle('active', match);
+    });
+
+    // Hide the selector row if type is locked from URL
+    if (typeParam) {
+      document.getElementById('typeRow').style.display = 'none';
+    }
+
     document.getElementById('typeRow').addEventListener('click', (e) => {
       const chip = e.target.closest('.type-chip');
       if (!chip) return;
-      document.querySelectorAll('.type-chip').forEach(c => c.classList.remove('active'));
+      allChips.forEach(c => c.classList.remove('active'));
       chip.classList.add('active');
       selectedType = chip.dataset.type;
     });
