@@ -76,34 +76,6 @@
       font-weight: 500;
     }
 
-    /* ── Type chips ───────────────────────────────────────────── */
-    .type-row {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-    .type-chip {
-      display: flex;
-      align-items: center;
-      gap: 5px;
-      padding: 6px 12px;
-      border-radius: 50px;
-      border: 1.5px solid transparent;
-      font-size: 12px;
-      font-weight: 700;
-      cursor: pointer;
-      transition: all 0.15s ease;
-      background: var(--surface2);
-      color: var(--muted);
-      font-family: 'Poppins', sans-serif;
-    }
-    .type-chip:hover { filter: brightness(1.2); }
-    .type-chip.active {
-      background: var(--chip-bg);
-      border-color: var(--chip-color);
-      color: var(--chip-color);
-    }
-
     /* ── Textarea ─────────────────────────────────────────────── */
     .textarea-wrap {
       position: relative;
@@ -243,34 +215,6 @@
       <div class="subtitle">Your message is 100% anonymous · they'll never know it was you</div>
     </div>
 
-    <!-- Type selector -->
-    <div class="type-row" id="typeRow">
-      <button class="type-chip active" data-type="question"
-        style="--chip-color:#A78BFA; --chip-bg:rgba(124,58,237,0.12)">
-        ❓ Question
-      </button>
-      <button class="type-chip" data-type="confession"
-        style="--chip-color:#F472B6; --chip-bg:rgba(236,72,153,0.12)">
-        🤫 Confession
-      </button>
-      <button class="type-chip" data-type="compliment"
-        style="--chip-color:#34D399; --chip-bg:rgba(16,185,129,0.12)">
-        💫 Compliment
-      </button>
-      <button class="type-chip" data-type="hot_take"
-        style="--chip-color:#FBBF24; --chip-bg:rgba(245,158,11,0.12)">
-        🔥 Hot Take
-      </button>
-      <button class="type-chip" data-type="crush"
-        style="--chip-color:#F87171; --chip-bg:rgba(239,68,68,0.12)">
-        💜 Crush
-      </button>
-      <button class="type-chip" data-type="roast"
-        style="--chip-color:#2DD4BF; --chip-bg:rgba(20,184,166,0.12)">
-        😤 Roast
-      </button>
-    </div>
-
     <!-- Message input -->
     <div class="textarea-wrap">
       <textarea id="messageInput" maxlength="150"
@@ -335,29 +279,8 @@
       document.getElementById('handleDisplay').textContent = 'someone';
     }
 
-    // ── Type selector ───────────────────────────────────────────
-    const typeParam = (params.get('type') || '').toLowerCase().trim();
-    let selectedType = typeParam || 'question';
-
-    // Auto-select chip matching URL type param
-    const allChips = document.querySelectorAll('.type-chip');
-    allChips.forEach(c => {
-      const match = c.dataset.type === selectedType;
-      c.classList.toggle('active', match);
-    });
-
-    // Hide the selector row if type is locked from URL
-    if (typeParam) {
-      document.getElementById('typeRow').style.display = 'none';
-    }
-
-    document.getElementById('typeRow').addEventListener('click', (e) => {
-      const chip = e.target.closest('.type-chip');
-      if (!chip) return;
-      allChips.forEach(c => c.classList.remove('active'));
-      chip.classList.add('active');
-      selectedType = chip.dataset.type;
-    });
+    // ── Type (locked from URL) ──────────────────────────────────
+    const selectedType = (params.get('type') || 'question').toLowerCase().trim();
 
     // ── Character counter ───────────────────────────────────────
     const textarea  = document.getElementById('messageInput');
@@ -414,13 +337,9 @@
       sendBtn.disabled = true;
       sendBtn.textContent = 'Send Anonymously 🔒';
       document.querySelectorAll(
-        '.header, .type-row, .textarea-wrap, .send-btn, .anon-note'
+        '.header, .textarea-wrap, .send-btn, .anon-note'
       ).forEach(el => el.style.display = '');
       document.getElementById('successState').style.display = 'none';
-      document.querySelectorAll('.type-chip').forEach((c, i) => {
-        c.classList.toggle('active', i === 0);
-      });
-      selectedType = 'question';
     });
   </script>
 
