@@ -8,6 +8,13 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <script>
+    !function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){function n(t){e[t]=e[t]||function(){e._q.push([t].concat(Array.prototype.slice.call(arguments,0)))}}var r=["addIdentify","setIdentify","capture","captureRevenue","register","unregister","setPersonProperties","reset","group","identify"],c=["captureRevenue"];(e._q=e._q||[]).push(["__init__",i,s,a]);for(var u=0;u<r.length;u++)n(r[u]);for(var p=0;p<c.length;p++)n(c[p])},e.__SV=1)}(document,window.posthog||[]);
+    posthog.init('phc_wimDFnSCRVzykQRgrF5KhwtkgeqBRvwfRRMERcbf7VwH', {
+      api_host: 'https://us.i.posthog.com',
+      person_profiles: 'identified_only'
+    });
+  </script>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -292,6 +299,29 @@
     if (handle) {
       document.getElementById('handleDisplay').textContent = '@' + handle;
       document.title = `Ask @${handle} anything · FR-FR`;
+
+      // ── Record profile view for Plus users ───────────────────
+      const ua = navigator.userAgent;
+      const device =
+        /iPhone|iPad|iPod/i.test(ua) ? 'iPhone' :
+        /Android/i.test(ua)          ? 'Android' :
+        /Mac/i.test(ua)              ? 'Mac' : 'Desktop';
+      const ref = document.referrer;
+      const source =
+        ref.includes('instagram') ? 'Instagram' :
+        ref.includes('snapchat')  ? 'Snapchat'  :
+        ref.includes('tiktok')    ? 'TikTok'    :
+        ref.includes('twitter') || ref.includes('x.com') ? 'Twitter/X' :
+        ref ? 'Link' : 'Direct';
+
+      supabase.from('profile_views').insert({
+        handle: handle,
+        source: source,
+        avatar_letter: device[0] || '?',
+        display_name: null,
+      }).then(() => {}).catch(() => {});
+
+      posthog.capture('profile_viewed', { handle: handle, source: source, device: device });
     } else {
       document.getElementById('handleDisplay').textContent = 'someone';
     }
@@ -330,6 +360,8 @@
           hints:   getHints(),
         });
         if (error) throw error;
+
+        posthog.capture('message_sent', { handle: handle, type: selectedType });
 
         // Show success
         document.querySelectorAll(
