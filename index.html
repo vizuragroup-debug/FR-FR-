@@ -178,6 +178,29 @@
     }
     .send-another:hover { opacity: 0.8; }
 
+    /* ── Question display ──────────────────────────────────────── */
+    .question-card {
+      background: linear-gradient(135deg, rgba(124, 58, 237, 0.12), rgba(236, 72, 153, 0.08));
+      border: 1px solid rgba(124, 58, 237, 0.25);
+      border-radius: var(--radius);
+      padding: 18px 20px;
+      display: none;
+    }
+    .question-card .label {
+      font-size: 11px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--accent);
+      margin-bottom: 8px;
+    }
+    .question-card .text {
+      font-size: 16px;
+      font-weight: 600;
+      line-height: 1.5;
+      color: var(--text);
+    }
+
     /* ── Error banner ─────────────────────────────────────────── */
     .error-banner {
       display: none;
@@ -220,6 +243,12 @@
     <div class="header">
       <div class="handle"><span>ask</span> <span id="handleDisplay">@...</span> <span>anything</span></div>
       <div class="subtitle">Your message is 100% anonymous · they'll never know it was you</div>
+    </div>
+
+    <!-- Question display (shown when q param is in URL) -->
+    <div class="question-card" id="questionCard">
+      <div class="label">Question</div>
+      <div class="text" id="questionText"></div>
     </div>
 
     <!-- Message input -->
@@ -299,35 +328,20 @@
     if (handle) {
       document.getElementById('handleDisplay').textContent = '@' + handle;
       document.title = `Ask @${handle} anything · FR-FR`;
-
-      // ── Record profile view for Plus users ───────────────────
-      const ua = navigator.userAgent;
-      const device =
-        /iPhone|iPad|iPod/i.test(ua) ? 'iPhone' :
-        /Android/i.test(ua)          ? 'Android' :
-        /Mac/i.test(ua)              ? 'Mac' : 'Desktop';
-      const ref = document.referrer;
-      const source =
-        ref.includes('instagram') ? 'Instagram' :
-        ref.includes('snapchat')  ? 'Snapchat'  :
-        ref.includes('tiktok')    ? 'TikTok'    :
-        ref.includes('twitter') || ref.includes('x.com') ? 'Twitter/X' :
-        ref ? 'Link' : 'Direct';
-
-      supabase.from('profile_views').insert({
-        handle: handle,
-        source: source,
-        avatar_letter: device[0] || '?',
-        display_name: null,
-      }).then(() => {}).catch(() => {});
-
-      posthog.capture('profile_viewed', { handle: handle, source: source, device: device });
     } else {
       document.getElementById('handleDisplay').textContent = 'someone';
     }
 
     // ── Type (locked from URL) ──────────────────────────────────
     const selectedType = (params.get('type') || 'question').toLowerCase().trim();
+
+    // ── Question text (from URL q param) ────────────────────────
+    const questionText = params.get('q');
+    if (questionText) {
+      const decoded = decodeURIComponent(questionText);
+      document.getElementById('questionText').textContent = decoded;
+      document.getElementById('questionCard').style.display = 'block';
+    }
 
     // ── Character counter ───────────────────────────────────────
     const textarea  = document.getElementById('messageInput');
@@ -365,7 +379,7 @@
 
         // Show success
         document.querySelectorAll(
-          '.header, .type-row, .textarea-wrap, .error-banner, .send-btn, .anon-note'
+          '.header, .question-card, .type-row, .textarea-wrap, .error-banner, .send-btn, .anon-note'
         ).forEach(el => el.style.display = 'none');
         const success = document.getElementById('successState');
         success.style.display = 'flex';
@@ -389,6 +403,10 @@
       document.querySelectorAll(
         '.header, .textarea-wrap, .send-btn, .anon-note'
       ).forEach(el => el.style.display = '');
+      // Restore question card if it was shown
+      if (questionText) {
+        document.getElementById('questionCard').style.display = 'block';
+      }
       document.getElementById('successState').style.display = 'none';
     });
   </script>
