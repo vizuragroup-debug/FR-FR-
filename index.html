@@ -335,6 +335,30 @@
     // ── Type (locked from URL) ──────────────────────────────────
     const selectedType = (params.get('type') || 'question').toLowerCase().trim();
 
+    // ── Type labels ─────────────────────────────────────────────
+    const typeLabels = {
+      'question': 'Question',
+      'confession': 'Confession',
+      'compliment': 'Compliment',
+      'hot_take': 'Hot Take',
+      'crush': 'Crush',
+      'roast': 'Roast',
+      'tbh': 'tbh',
+      '3words': '3 Words',
+      'three_words': '3 Words',
+      'never_have_i_ever': 'Never Have I Ever',
+      'ship_me': 'Ship Me',
+      'dealbreaker': 'Dealbreaker',
+    };
+    const typeLabel = typeLabels[selectedType] || 'Question';
+    if (selectedType !== 'question') {
+      const typeBadge = document.createElement('div');
+      typeBadge.style.cssText = 'font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:var(--accent);margin-bottom:6px;';
+      typeBadge.textContent = typeLabel;
+      const questionCard = document.getElementById('questionCard');
+      questionCard.insertBefore(typeBadge, questionCard.firstChild);
+    }
+
     // ── Question text (from URL q param) ────────────────────────
     const questionText = params.get('q');
     if (questionText) {
